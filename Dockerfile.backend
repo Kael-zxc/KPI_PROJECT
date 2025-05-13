@@ -1,13 +1,24 @@
-# Dockerfile.backend
+# C:\KPI_PROJECT\Dockerfile.backend
 FROM python:3.11-slim
 
 WORKDIR /app
+
+# Копируем .env (если нужно внутри контейнера)
 COPY .env ./
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Копируем файл зависимостей
+COPY backend/requirements.txt ./requirements.txt
+
+# Устанавливаем зависимости, включая gunicorn
+RUN pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
+# Копируем всё ваше приложение
 COPY backend/ ./backend/
-COPY kpi_project/ ./kpi_project/
 
+# Ставим рабочую директорию на папку с manage.py
 WORKDIR /app/backend
+
+# По-умолчанию запускаем gunicorn
 CMD ["gunicorn", "kpi_project.wsgi:application", "--bind", "0.0.0.0:8000"]
+
