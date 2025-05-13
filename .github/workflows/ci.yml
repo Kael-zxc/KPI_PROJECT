@@ -1,0 +1,114 @@
+name: CI
+
+# Запускать на пуш/PR в ветку develop
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build-and-test:
+    # Используем Windows-раннер
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        python-version: [3.11]
+        node-version: [18.x]
+
+    steps:
+      # 1) Получить код
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Установить Python
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 3) Установить Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # 4) Кэшировать зависимости Python
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+      # 5) Установить зависимости Python
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 6) Кэшировать модули Node
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: frontend\node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend\package-lock.json') }}
+
+      # 7) Установить зависимости Node
+      - name: Install Node dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # 8) Linting Python
+      - name: Lint Python code
+        run: |
+          flake8 .
+          isort --check-only .
+
+      # 9) Linting JavaScript
+      - name: Lint JS code
+        working-directory: frontend
+        run: npm run lint
+
+      # 10) Запустить Python-тесты
+      - name: Run Python tests
+        run: pytest --maxfail=1 --disable-warnings -q
+
+      # 11) Запустить JS-тесты
+      - name: Run JS tests
+        working-directory: frontend
+        run: npm test -- --watchAll=false --bail
+            
+  build-and-push:
+    needs: build-and-test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Авторизация в реестре
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Сборка и пуш backend
+      - name: Build & Push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.backend
+          push: true
+          tags: ${{ secrets.DOCKER_REGISTRY }}/kpi-backend:latest
+
+      # Сборка и пуш frontend
+      - name: Build & Push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: Dockerfile.frontend
+          push: true
+          tags: ${{ secrets.DOCKER_REGISTRY }}/kpi-frontend:latest

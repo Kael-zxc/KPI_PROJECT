@@ -1,0 +1,8 @@
+env
+.env
+*.pyc
+__pycache__/
+node_modules/
+frontend/build/
+postgres_data/
+redis_data/

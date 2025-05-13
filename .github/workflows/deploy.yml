@@ -1,0 +1,25 @@
+name: Deploy to Test Server
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # SSH-подключение и запуск команд на сервере
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_SERVER_HOST }}
+          username: ${{ secrets.TEST_SERVER_USER }}
+          key: ${{ secrets.TEST_SERVER_SSH_KEY }}
+          script: |
+            cd C:\KPI_PROJECT
+            git pull origin develop
+            docker compose pull
+            docker compose up -d --build
