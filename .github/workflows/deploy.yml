@@ -6,27 +6,30 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   # Linux-раннер для container actions
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: SSH Deploy
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.TEST_SERVER_HOST }}
-          username: ${{ secrets.TEST_SERVER_USER }}
+          host: ${{ secrets.TEST_SERVER_HOST }}         # ← Обязательно!
+          username: ${{ secrets.TEST_SERVER_USER }}     # ← И это
           key: ${{ secrets.TEST_SERVER_SSH_KEY }}
+          port: 22
           script: |
-            cd C:\KPI_PROJECT
+            # На удалённом (скорее всего Linux) сервере путь нужно править
+            cd /home/${{ secrets.TEST_SERVER_USER }}/KPI_PROJECT
             git pull origin develop
             docker compose pull
             docker compose up -d --build
 
-
       - name: Run Smoke Tests
-        shell: cmd
+        shell: bash    # на Linux runner лучше bash
         run: |
-          cd C:\KPI_PROJECT\scripts
-          smoke.bat
+          curl -f http://localhost/api/health/  
+          curl -f http://localhost/api/metrics/
+
 
