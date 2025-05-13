@@ -58,8 +58,8 @@ jobs:
 
       # 7) Установить зависимости Node
       - name: Install Node dependencies
-        working-directory: frontend       # уходим в папку frontend
-        run: npm ci                       # теперь найдёт package.json + package-lock.json
+        working-directory: frontend
+        run: npm ci
 
 
       # 8) Linting Python
