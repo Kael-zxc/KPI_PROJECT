@@ -6,12 +6,11 @@ on:
 
 jobs:
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      # SSH-подключение и запуск команд на сервере
       - name: SSH Deploy
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -23,3 +22,10 @@ jobs:
             git pull origin develop
             docker compose pull
             docker compose up -d --build
+
+      - name: Run Smoke Tests
+        shell: cmd
+        run: |
+          cd C:\KPI_PROJECT\scripts
+          smoke.bat
+
