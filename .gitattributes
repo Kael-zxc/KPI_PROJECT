@@ -1,9 +1,10 @@
-# Гарантировать LF в репозитории для всех текстовых файлов
+# Принудительный LF в репозитории для всех текстовых
 * text=auto eol=lf
 
-# Конкретно для JSON/YAML/Python
+# Исключение: workflow-файлы CRLF
+.github/workflows/*.yml text eol=crlf
+
+# Конкретные форматы
 *.json   text eol=lf
-*.yml    text eol=lf
-*.yaml   text eol=lf
 *.py     text eol=lf
 *.md     text eol=lf

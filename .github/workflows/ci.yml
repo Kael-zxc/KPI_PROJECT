@@ -43,9 +43,11 @@ jobs:
 
       # 5) Установить зависимости Python
       - name: Install Python dependencies
+        working-directory: backend    # ← добавили
         run: |
           pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r requirements.txt
+
 
       # 6) Кэшировать модули Node
       - name: Cache Node modules
