@@ -23,6 +23,7 @@ jobs:
             docker compose pull
             docker compose up -d --build
 
+
       - name: Run Smoke Tests
         shell: cmd
         run: |
