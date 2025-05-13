@@ -58,8 +58,9 @@ jobs:
 
       # 7) Установить зависимости Node
       - name: Install Node dependencies
-        working-directory: frontend
-        run: npm ci
+        run: |
+          cd ${{ github.workspace }}/frontend
+          npm ci
 
       # 8) Linting Python
       - name: Lint Python code
